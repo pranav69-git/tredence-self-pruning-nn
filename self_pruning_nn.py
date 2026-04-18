@@ -14,10 +14,7 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import numpy as np
 
-# ──────────────────────────────────────────
-# Part 1: PrunableLinear Layer
-# ──────────────────────────────────────────
-
+#Part 1: PrunableLinear Layer
 class PrunableLinear(nn.Module):
     """
     Custom linear layer with learnable gate parameters.
@@ -57,7 +54,7 @@ class PrunableLinear(nn.Module):
         # Element-wise gate the weights
         pruned_weights = self.weight * gates
 
-        # Standard affine transform — gradients flow through both weight + gate_scores
+        # Standard affine transform, gradients flow through both weight + gate_scores
         return F.linear(x, pruned_weights, self.bias)
 
     def get_gates(self) -> torch.Tensor:
@@ -69,10 +66,7 @@ class PrunableLinear(nn.Module):
         return torch.sigmoid(self.gate_scores).sum()
 
 
-# ──────────────────────────────────────────
 # Part 2: Network using PrunableLinear
-# ──────────────────────────────────────────
-
 class SelfPruningNet(nn.Module):
     """
     Feed-forward net for CIFAR-10 (32×32×3 = 3072 input features).
@@ -116,10 +110,7 @@ class SelfPruningNet(nn.Module):
         return pruned / gates.numel() * 100.0
 
 
-# ──────────────────────────────────────────
 # Part 3: Data Loading
-# ──────────────────────────────────────────
-
 def get_dataloaders(batch_size: int = 128):
     transform_train = transforms.Compose([
         transforms.RandomHorizontalFlip(),
@@ -142,10 +133,7 @@ def get_dataloaders(batch_size: int = 128):
     return train_loader, test_loader
 
 
-# ──────────────────────────────────────────
 # Part 3: Training Loop
-# ──────────────────────────────────────────
-
 def train_epoch(model, loader, optimizer, lambda_sparse, device):
     model.train()
     total_loss = 0.0
@@ -221,11 +209,7 @@ def run_experiment(lambda_sparse: float, epochs: int, device, train_loader, test
 
     return test_acc, sparsity, gate_vals
 
-
-# ──────────────────────────────────────────
 # Plotting
-# ──────────────────────────────────────────
-
 def plot_gate_distribution(gate_vals: np.ndarray, lambda_val: float, save_path: str):
     """Histogram of gate values. Good pruning → spike at 0, cluster away from 0."""
     fig, ax = plt.subplots(figsize=(8, 5))
@@ -265,10 +249,7 @@ def plot_all_distributions(results: dict, save_path: str):
     print(f"  Combined plot saved → {save_path}")
 
 
-# ──────────────────────────────────────────
 # Main
-# ──────────────────────────────────────────
-
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Device: {device}")
@@ -291,7 +272,7 @@ def main():
         )
         results[lam] = {'acc': test_acc, 'sparsity': sparsity, 'gates': gate_vals}
 
-    # ── Print summary table ──
+    #Print summary table
     print("\n" + "="*55)
     print(f"{'Lambda':<12} {'Test Acc (%)':>14} {'Sparsity (%)':>14}")
     print("-"*42)
@@ -300,7 +281,7 @@ def main():
         print(f"{lam:<12} {r['acc']:>14.2f} {r['sparsity']:>14.2f}")
     print("="*55)
 
-    # ── Plots ──
+    #Plots
     best_lam = max(results, key=lambda l: results[l]['acc'])
     plot_gate_distribution(
         gate_vals=results[best_lam]['gates'],
